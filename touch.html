@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Title</title>
+</head>
+<body>
+<style>
+    .box {
+        position: absolute;
+        border: red 1px solid;
+    }
+
+    #mv {
+        cursor: pointer;
+        border: blue 1px solid;
+    }
+</style>
+<div class="box">
+    <span id="mv">ddddddddd</span>
+    <em>ssssssss</em>
+</div>
+
+<script>
+
+    moveable('mv', null, true);
+
+    function moveable(id, endcb, pr) {
+        var doc = document;
+        var ele = doc.documentElement;
+
+        // 获取节点
+        var obj = doc.getElementById(id);
+        var mvobj = pr ? obj.parentElement : obj;
+        var w, h;
+
+        // 绑定touchstart事件
+        obj.addEventListener("touchstart", function (e) {
+            var touches = e.touches[0];
+            w = touches.clientX - mvobj.offsetLeft;
+            h = touches.clientY - mvobj.offsetTop;
+            mvobj.classList.add('lamMove');
+            //阻止页面的滑动默认事件
+            doc.addEventListener("touchmove", defaultEvent(e), false);
+        }, false);
+
+        obj.addEventListener("touchmove", function (e) {
+            var touches = e.touches[0];
+            var left = touches.clientX - w;
+            var top = touches.clientY - h;
+            var width = ele.clientWidth - mvobj.offsetWidth;
+
+            if (left < 0) {
+                left = 0;
+            } else if (left > width) {
+                left = width
+            }
+            mvobj.style.left = left + "px";
+            mvobj.style.top = top + "px";
+        }, false);
+
+        obj.addEventListener("touchend", function (e) {
+            doc.removeEventListener("touchmove", defaultEvent(e), false);
+            mvobj.classList.remove('lamMove');
+            typeof (endcb) == 'function' && endcb(obj, mvobj);
+        }, false);
+    }
+
+    function defaultEvent(e) {
+        e.preventDefault();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>双向数据绑定</title>
+</head>
+<body>
+<div>梁凤波</div>
+<script>
+    function defineReactive(obj, key, val) {
+        // 递归子属性
+        observe(val)
+        const dep = new Dep()
+
+        Object.defineProperty(obj, key, {
+            configurable: true,
+            enumerable: true,
+            get() {
+                console.log('get val...')
+                if (Dep.target) {
+                    dep.addSubs(Dep.target)
+                }
+                return val
+            },
+            set(newVal) {
+                if (val === newVal) return
+
+                console.log('set val...')
+                val = newVal
+                dep.notify()
+            }
+        })
+    }
+
+    function observe(obj) {
+        if (!obj || typeof obj !== 'object') {
+            return
+        }
+        Object.keys(obj).forEach(key => {
+            defineReactive(obj, key, obj[key])
+        })
+
+    }
+
+    class Dep {
+        constructor() {
+            this.subs = [];
+        }
+
+        // 添加依赖
+        addSubs(sub) {
+            this.subs.push(sub)
+        }
+
+        // 派发更新依赖
+        notify() {
+            this.subs.forEach(sub => {
+                sub.update()
+            })
+        }
+    }
+
+
+    class Watcher {
+        constructor(obj, key, cb) {
+            // 将 Dep.target 指向Watcher
+            // 然后触发属性的 getter 添加监听
+            // 最后把 Dep.target 清空
+            Dep.target = this
+            this.obj = obj
+            this.key = key
+            this.value = obj[key]
+            this.cb = cb
+            Dep.target = null
+        }
+
+        update() {
+            // 获得新值
+            this.value = this.obj[this.key]
+            // 更新 DOM
+            this.cb(this.value)
+        }
+    }
+    // 初始化变量
+    Dep.target = null
+
+    var data = {
+        name: '梁凤波'
+    }
+    observe(data)
+
+    // 更新dom
+    function updateDom(value) {
+        document.querySelector('div').innerText = value
+    }
+
+    new Watcher(data, 'name', updateDom)
+</script>
+</body>
+</html>
